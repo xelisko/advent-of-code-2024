@@ -6,10 +6,12 @@ def main():
     safe = 0 
 
     # read the text file
-    file = open('input01.txt', 'r')
+    file = open('input_edge.txt', 'r')
+
     line = file.readline().strip()
     while line:
         levels = list(map(int, line.split(' ')))
+        print (levels)
         out = isSafe(levels)
         print (out)
         if (out):
@@ -24,31 +26,52 @@ def isSafe(levels, again = 0):
     type = True # true - increasing, false - decreasing
     if (levels[0] < levels[1]):
         type = True
-    elif (levels[0] > levels[2]):
-        levels.reverse()
-    #     type = False
+    elif (levels[0] > levels[1]):
+        # levels.reverse()
+        type = False
     # else:
     #     return False
     
     flag = True
     for i in range (len(levels)-1):
-        # it must be larger but not by more than 3
-        if (type):
+        if (type): #ascending
             if (levels[i+1] <= levels[i]) or (levels[i+1] > levels[i]+3):
+                # problem found
+                # try fix by removng i+1
                 if (again == 0):
                     b = levels[:i+1] + levels[i+2:]
+                    print (b)
                     if (isSafe(b, 1)):
-                        # print ("corrected")
+                        print ("corrected")
+                        continue
+                # try fix by removing i 
+                if (again == 0):
+                    b = levels[:i] + levels[i+1:]
+                    print (b)
+                    if (isSafe(b, 1)):
+                        print ("corrected")
                         continue
                 flag = False
         else: # descending
             if (levels[i+1] >= levels[i]) or (levels[i+1] < levels[i]-3):
+                # try fixing by removing i+1
                 if (again == 0):
                     b = levels[:i+1] + levels[i+2:]
+                    print (b)
                     if (isSafe(b, 1)):
-                        # print ("corrected")
+                        print ("corrected")
+                        continue
+                # try fix by removing i 
+                if (again == 0):
+                    b = levels[:i] + levels[i+1:]
+                    print (b)
+                    if (isSafe(b, 1)):
+                        print ("corrected")
                         continue
                 flag = False
+    # if flag == False:
+    #     b = levels[1:]
+    #     flag = isSafe(b, 1)
     return flag
 
 if __name__ == "__main__":
