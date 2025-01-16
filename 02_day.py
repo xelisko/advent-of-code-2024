@@ -10,20 +10,26 @@ def main():
 
     line = file.readline().strip()
     while line:
+        # map to a list
         levels = list(map(int, line.split(' ')))
         print (levels)
+
+        # find out if the level is safe, by removing 1:-1 reports
         out = isSafe(levels)
         print (out)
+
+        if (out):
+            safe += 1
         
         if (out == False):
             # try fix by removing 0
             b = levels[1:]
             print (levels, b)
             if (isSafe(b, 1)):
-                print ("first report removed")
-                out = True
-        if (out):
-            safe += 1
+                print ("first")
+                safe += 1
+            else:
+                print("nist")
         
         line = file.readline().strip()
     print ("# of safe reports = ", safe)
@@ -33,7 +39,6 @@ def main():
 
 
 def isSafe(levels, again = 0):
-    type = True # true - increasing, false - decreasing
     if (levels[0] > levels[1]):
         levels = levels[::-1]
     
