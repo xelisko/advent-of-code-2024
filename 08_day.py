@@ -74,10 +74,16 @@ class Map:
     
     def produceResonant(self, b, d):
         # calculate the  new d
+        if (c_diff < 0 ):
+            c = [b[0]+r_diff, b[1]+c_diff]
+            d = [a[0]-r_diff, a[1]-c_diff]
+        else:
+            c = [b[0]+r_diff, b[1]+c_diff]
+            d = [a[0]-r_diff, a[1]-c_diff]
         # check if d is still in the map
         # if in the map -> mark, recall again
         # if out of map -> return    
-        passs
+        pass
 
     def countAntinodes(self):
         a = 0
