@@ -1,0 +1,12 @@
+- context: list of orders with IDs that must follow certain rules:
+X|Y : id X must be printed before Y
+
+- input:
+list of X|Y ids rules
+list of orders to process 
+
+- output: 
+for the correct orders, add up their middle ID values
+
+- output part 2:
+correct the orders with incorrect order and then sum the middle ID values (of the new order)
