@@ -29,6 +29,7 @@ class Garden:
             for j, plant in enumerate(row):
                 # checks if already processed
                 if self.counted[i][j] == 0:
+                    print("started with", plant)
                     # start tracing the region - Task 1
                     self.regionPlots = []
                     a, n = self.findRegion(i, j, plant)
@@ -36,6 +37,7 @@ class Garden:
 
                     # start tracing outline for that region
                     self.startCornerChase(i, j)
+                    return price
         return price
 
     def findRegion(self, row, col, plant):
@@ -86,7 +88,7 @@ class Garden:
         assert abs(x0 - x1) <= 1 and abs(y0 - y1) <= 1
         assert (x0 != x1) or (y0 != y1)
         assert x0 == x1 or y0 == y1
-        assert [x1, y1] not in self.corners
+        # assert self.corners != 0 and [x1, y1] not in self.corners
 
         if x0 == x1:
             if y0 > y1:  # up
@@ -124,9 +126,11 @@ class Garden:
             and self.isEdge(row, col, row, col + 1, plant)
         ):
             curr_dir = [0, +1]
+            print("starting right")
             if prev_dir != curr_dir:
-                self.corners.append(row, col)
-            self.detectOutline(self, row, col + 1, row, col, curr_dir)
+                print("new corner")
+                self.corners.append([prevRow, prevCol])
+            self.detectOutline(row, col + 1, row, col, curr_dir)
         # left
         elif (
             prevRow != row
@@ -135,8 +139,9 @@ class Garden:
         ):
             curr_dir = [0, -1]
             if prev_dir != curr_dir:
-                self.corners.append(row, col)
-            self.detectOutline(self, row, col - 1, row, col, curr_dir)
+                print("new corner")
+                self.corners.append(([row, col]))
+            self.detectOutline(row, col - 1, row, col, curr_dir)
         # up
         elif (
             prevRow != row - 1
@@ -145,8 +150,9 @@ class Garden:
         ):
             curr_dir = [-1, 0]
             if prev_dir != curr_dir:
-                self.corners.append(row, col)
-            self.detectOutline(self, row - 1, col, row, col, curr_dir)
+                print("new corner")
+                self.corners.append(([row, col]))
+            self.detectOutline(row - 1, col, row, col, curr_dir)
         # down
         elif (
             prevRow != row + 1
@@ -155,13 +161,14 @@ class Garden:
         ):
             curr_dir = [+1, 0]
             if prev_dir != curr_dir:
-                self.corners.append(row, col)
+                print("new corner")
+                self.corners.append([row, col])
             self.detectOutline(row + 1, col, row, col, curr_dir)
 
         return
 
     def startCornerChase(self, row, col):
-        self.detectOutline(row, col, row, col - 1, [+1, 0])
+        self.detectOutline(row, col, row - 1, col - 1, [0, 0])
 
     # def determineDirection(self, row, col, plant):
     #     if col + 1 < self.cols and self.map[row][col + 1] == plant:
