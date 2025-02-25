@@ -134,7 +134,7 @@ class Graf:
 
 
 def main() -> None:
-    with open("20_input.txt") as file:
+    with open("20_puzzle.txt") as file:
         grid = [line.strip() for line in file]
         graf = Graf(grid)
         distances_from_start = graf.get_distances_from(graf.start)
