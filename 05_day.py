@@ -1,117 +1,94 @@
 def main():
-    file = open("05_puzzle.txt", "r")
-    line = file.readline().strip()
-
-    rule_dict = dict()
-
-    # read all the rules and save to dictionary
-    while line != "":
-        line1 = line.split("|")
-        x, y = int(line1[0]), int(line1[1])
-
-        if rule_dict.get(x) != None:
-            existing = rule_dict.get(x)
-            if isinstance(existing, int):
-                rule_dict[x] = [existing, y]
-            else:
-                rule_dict[x] = existing + [y]
-        else:
-            rule_dict[x] = y
-
-        line = file.readline().strip()
-
-    # check the existing orders
-    line = file.readline().strip()
+    page_order_rules_dict = dict()
     sum = 0
-    incorrect_orders = []
-    while line:
-        tokens = list(map(int, line.split(",")))
+    sum_star_2 = 0
+    incorrectly_ordered_pages = []
+    part_A = True
 
-        valid = checkValidity(tokens, rule_dict)
+    with open("05_puzzle.txt") as file:
+        for line in file:
+            if line == "\n":
+                part_A = False
+                continue
 
-        # add up the middle value
-        if valid:
-            middle_index = len(tokens) // 2
-            middle_value = tokens[middle_index]
-            sum += middle_value
-        else:
-            incorrect_orders.append(tokens)
+            # read all the rules and save to dictionary
+            if part_A:
+                page_before_Y, Y = list(map(int, line.strip().split("|")))
 
-        line = file.readline().strip()
+                if page_before_Y not in page_order_rules_dict.keys():
+                    page_order_rules_dict[page_before_Y] = [Y]
+                else:
+                    existing = page_order_rules_dict.get(page_before_Y)
+                    existing.append(Y)
+                    page_order_rules_dict[page_before_Y] = existing
 
-    print("sum part 1 =", sum)
+            else:
+                # check the existing orders
+                pages = list(map(int, line.strip().split(",")))
 
-    sum1 = 0
-    for order in incorrect_orders:
-        correct = correctOrder(order, rule_dict)
-        sum1 += correct[len(correct) // 2]
+                valid = checkValidity(pages, page_order_rules_dict)
 
-    print("sum part 2 =", sum1)
+                if valid:
+                    sum += pages[len(pages) // 2]
+                else:
+                    incorrectly_ordered_pages.append(pages)
+
+        print("sum part 1 =", sum)
+
+        for update in incorrectly_ordered_pages:
+            correctly_ordered_update = correctOrder(update, page_order_rules_dict)
+            sum_star_2 += correctly_ordered_update[len(correctly_ordered_update) // 2]
+
+        print("sum part 2 =", sum_star_2)
     return 0
 
 
-def checkValidity(tokens, rules_dict):
-    prev_tokens = []
+def checkValidity(
+    pages: list[int], page_order_rules_dict: dict[int, list[int]]
+) -> bool:
+    prev_pages = []
 
-    for token in tokens:
-        if not prev_tokens:
-            prev_tokens.append(token)
+    for curr_page in pages:
+        prev_pages.append(curr_page)
+        if (prev_pages) == 1:
             continue
 
-        cannot_be_before = rules_dict.get(token)
-
-        if not cannot_be_before:
-            prev_tokens.append(token)
+        if curr_page not in page_order_rules_dict.keys():
             continue
 
-        if isinstance(cannot_be_before, int):
-            if cannot_be_before in prev_tokens:
-                return False
-            prev_tokens.append(token)
-            continue
+        pages_after_curr_page = page_order_rules_dict.get(curr_page)
 
-        for page in prev_tokens:
-            if page in cannot_be_before:
+        for prev_page in prev_pages:
+            if prev_page in pages_after_curr_page:
                 return False
 
-        prev_tokens.append(token)
     return True
 
 
-def correctOrder(order, rules_dict):
-    prev_ids = []
+def correctOrder(
+    update: list[int], page_order_rules_dict: dict[int, list[int]]
+) -> list[int]:
+    prev_pages = []
 
     # let's swap the ones that are in an incorrect order
-    for id in order:
-        prev_ids.append(id)
+    for curr_page in update:
+        prev_pages.append(curr_page)
 
-        # get the dictionary entry
-        no_go_ids = rules_dict.get(id)
-
-        if len(prev_ids) == 0:
+        if len(prev_pages) == 1 or curr_page not in page_order_rules_dict.keys():
             continue
+        must_be_after_curr_page = page_order_rules_dict.get(curr_page)
 
-        # if no rules
-        if no_go_ids == None:
-            continue
-
-        # if only 1 rule -> convert int to list
-        if isinstance(no_go_ids, int):
-            no_go_ids = [no_go_ids]
-
-        # loop through
-        j = 0
         # reverse the array, so the checking happens from the end
-        prev_ids = prev_ids[::-1]
-
-        for i, prev in enumerate(prev_ids):
-            if prev in no_go_ids:
-                prev_ids[i], prev_ids[j] = prev_ids[j], prev_ids[i]
+        prev_pages = prev_pages[::-1]
+        j = 0
+        for i, prev_page in enumerate(prev_pages):
+            if prev_page in must_be_after_curr_page:
+                prev_pages[i], prev_pages[j] = prev_pages[j], prev_pages[i]
                 j = i
         # reverse back
-        prev_ids = prev_ids[::-1]
+        prev_pages = prev_pages[::-1]
 
-    return prev_ids
+    return prev_pages
 
 
 if __name__ == "__main__":
