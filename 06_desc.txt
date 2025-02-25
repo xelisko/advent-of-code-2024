@@ -1,0 +1,12 @@
+- context: a guard is navigating through a map, when there is an obstacle in the way,
+the guard turns 90* to right, then continues straight. it does it so until it escapes the map
+
+- input: map with .. where # is an obstacle, ^ is starting position
+
+- output: the number of tiles that have been roammed by the guard
+
+part 2:
+- add an obstruction, so that the guard is trapped in a loop
+new obstruction 0
+
+- output: number of obstruction that can be added
