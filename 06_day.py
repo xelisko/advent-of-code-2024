@@ -1,124 +1,178 @@
+from enum import Enum
+from dataclasses import dataclass
+
+
+class Direction(Enum):
+    Up = 0
+    Right = 1
+    Down = 2
+    Left = 3
+
+
+@dataclass
+class Position:
+    x: int
+    y: int
+
+
 class Map:
     def __init__(self, grid):
         self.grid = grid
         self.rows = len(grid)
+        self.visited_positions = []
         self.cols = len(grid[0])
 
-    def isObstable(self, position):
-        r = position[0]
-        c = position[1]
-
-        if self.grid[r][c] == "#":
+    def isObstable(self, position: Position) -> bool:
+        if self.grid[position.y][position.x] == "#":
             return True
         return False
 
-    def getMap(self):
+    def printMap(self):
         for row in self.grid:
             print(row)
 
-    def getStartPos(self):
-        start_r, start_c = -1, -1
-        for r, row in enumerate(self.grid):
+    def getStartPos(self) -> list[int]:
+        start_row, start_col = -1, -1
+        for i, row in enumerate(self.grid):
             if "^" in row:
-                start_c = row.find("^")
-                start_r = r
+                start_col = row.find("^")
+                start_row = i
                 continue
-        if start_r == -1 or start_c == -1:
+        if start_row == -1 or start_col == -1:
             print("Error: initial position not found")
-        return [start_r, start_c]
+        return Position(start_col, start_row)
 
-    def markVisit(self, pos):
-        r = pos[0]
-        c = pos[1]
-
-        self.grid[r] = self.grid[r][:c] + "X" + self.grid[r][c + 1 :]
+    def markVisit(self, position: list[int]):
+        row = position.y
+        col = position.x
+        self.grid[row] = self.grid[row][:col] + "X" + self.grid[row][col + 1 :]
+        self.visited_positions.append(Position(col, row))
         # print (self.grid[r])
 
+<<<<<<< Updated upstream
     def calculateNextPosition(self, dir, pos):
         r = pos[0]
         c = pos[1]
+=======
+    def move(self, direction: Direction, position: Position) -> Position:
+        row = position.y
+        col = position.x
+>>>>>>> Stashed changes
 
-        match (dir):
-            case 1:  # right
-                return [r, c + 1]
-            case 3:  # left
-                return [r, c - 1]
-            case 0:  # up
-                return [r - 1, c]
-            case 2:  # down
-                return [r + 1, c]
+        match (direction):
+            case Direction.Right:
+                return Position(col + 1, row)
+            case Direction.Left:
+                return Position(col - 1, row)
+            case Direction.Up:
+                return Position(col, row - 1)
+            case Direction.Down:
+                return Position(col, row + 1)
             case default:
-                return [r, c + 1]
+                return Position(col, row + 1)
 
-    def isInsideMap(self, pos):
-        r = pos[0]
-        c = pos[1]
-        if r <= 0 or c <= 0 or r >= self.rows - 1 or c >= self.cols - 1:
+    def isInsideMap(self, position: Position) -> bool:
+        row = position.y
+        col = position.x
+        if row <= 0 or col <= 0 or row >= self.rows - 1 or col >= self.cols - 1:
             return False
         return True
 
-    def countVisited(self):
-        vis = 0
-        for j in range(self.rows):
-            for i in range(self.cols):
-                if self.grid[j][i] == "X":
-                    vis += 1
-        return vis
+    def countVisited(self) -> int:
+        count = 0
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if self.grid[row][col] == "X":
+                    count += 1
+        return count
 
-    def changeDir(self, curr_dir):
-        new_dir = curr_dir + 1
-        if new_dir == 4:
-            return 0
-        return new_dir
+    def changeDirection(self, curr_dir: Direction) -> Direction:
+        match (curr_dir):
+            case Direction.Right:
+                return Direction.Down
+            case Direction.Down:
+                return Direction.Left
+            case Direction.Left:
+                return Direction.Up
+            case Direction.Up:
+                return Direction.Right
+
+    def getVisitedPositions(self):
+        for visited_tile in self.visited_positions:
+            print(visited_tile)
+
+    def selectStones(self) -> list[Position]:
+        stones_positions = []
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if self.grid[row][col] == "#":
+                    stones_positions.append(Position(col, row))
+        return stones_positions
+    
+    def selectAllStoneTriples(self):
+        all_stones = self.selectStones()
+        for i in range(all_stones):
+            for j in range(all_stones[i:]):
+                for z in range(all_stones[j:]):
+
 
 
 def main():
-    f = open("06_puzzle.txt", "r")
-    line = f.readline().strip()
+    with open("06_input.txt") as f:
+        map_grid = []
+        for line in f:
+            map_grid.append(line.strip())
 
-    map_read = []
+    # initiate the MAP OBJECT
+    map = Map(map_grid)
+    curr_position = map.getStartPos()
+    curr_direction = Direction.Up
 
-    # read the map
-    while line:
-        map_read.append(line)
-        line = f.readline().strip()
-
-    # initiate the map object
-    map = Map(map_read)
-    pos = map.getStartPos()
-    dir = 0  # "UP"
-
-    print(dir, pos)
+    print(curr_direction, curr_position)
 
     # start moving
     inside = True
     x = 0
     while inside:
+<<<<<<< Updated upstream
         # get the nert position
         next_pos = map.calculateNextPosition(dir, pos)
         # print (dir, next_pos)
+=======
+        # get the next position
+        next_position = map.move(curr_direction, curr_position)
+        # print (curr_direction, next_position)
+>>>>>>> Stashed changes
 
         # check if there is no obstacle
-        obstacle = map.isObstable(next_pos)
+        isObstacle = map.isObstable(next_position)
         # print (obstacle)
 
+<<<<<<< Updated upstream
         if obstacle:
             # change direction
             dir = map.changeDir(dir)
             # get new position
             next_pos = map.calculateNextPosition(dir, pos)
+=======
+        if isObstacle:
+            curr_direction = map.changeDirection(curr_direction)
+            next_position = map.move(curr_direction, curr_position)
+>>>>>>> Stashed changes
 
         # if no obstacle, move there
-        map.markVisit(next_pos)
-        pos = next_pos
+        map.markVisit(next_position)
+        curr_position = next_position
 
         # check if you are still in the map
-        inside = map.isInsideMap(pos)
+        inside = map.isInsideMap(curr_position)
         # map.getMap()
 
     # escaped map -> # of visited tiles
     number = map.countVisited()
     print("# of visited tiles", number)
+    map.printMap()
+    map.getVisitedPositions()
     return 0
 
 
