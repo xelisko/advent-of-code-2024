@@ -104,7 +104,7 @@ def checkAllDiagonalTop(wordGrid: list[str], word: str) -> int:
 
 def checkAllDiagonalBottom(wordGrid: list[str], word: str) -> int:
     combinations = []
-    n = len(wordGrid[0])
+    n = len(wordGrid[0]) - 1
     for j in range(1, len(wordGrid)):  # starting line
         diagonal_to_left = ""
         diagonal_to_right = ""
@@ -114,6 +114,7 @@ def checkAllDiagonalBottom(wordGrid: list[str], word: str) -> int:
                 diagonal_to_right += wordGrid[j + i][n - i]
             except:
                 continue
+        combinations.append(diagonal_to_right)
         combinations.append(diagonal_to_left)
     return countWordInList(combinations, word)
 
@@ -128,7 +129,7 @@ def newMain():
     count += checkAllVertical(word_grid, "XMAS")
     count += checkAllDiagonalTop(word_grid, "XMAS")
     count += checkAllDiagonalBottom(word_grid, "XMAS")
-    print(count)
+    print("new count", count)
 
 
 def searchForPhrase(word, xmas):
@@ -148,5 +149,5 @@ def searchForPhrase(word, xmas):
 
 
 if __name__ == "__main__":
-    main()
+    # main()
     newMain()
