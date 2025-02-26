@@ -16,10 +16,7 @@ def main():
             # get all the combinations of operators
             all_equations = np.array(
                 generate_operators_combinations("", len(values) - 1)
-            )
-            all_equations = all_equations.reshape((-1))
-            # print(all_equations)
-            # print(len(all_equations), len(values))
+            ).reshape((-1))
 
             # calculate all the values
             all_results = []

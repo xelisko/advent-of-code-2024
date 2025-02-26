@@ -34,7 +34,7 @@ class Map:
         self.grid[r] = self.grid[r][:c] + "X" + self.grid[r][c + 1 :]
         # print (self.grid[r])
 
-    def move(self, dir, pos):
+    def calculateNextPosition(self, dir, pos):
         r = pos[0]
         c = pos[1]
 
@@ -95,7 +95,7 @@ def main():
     x = 0
     while inside:
         # get the nert position
-        next_pos = map.move(dir, pos)
+        next_pos = map.calculateNextPosition(dir, pos)
         # print (dir, next_pos)
 
         # check if there is no obstacle
@@ -106,7 +106,7 @@ def main():
             # change direction
             dir = map.changeDir(dir)
             # get new position
-            next_pos = map.move(dir, pos)
+            next_pos = map.calculateNextPosition(dir, pos)
 
         # if no obstacle, move there
         map.markVisit(next_pos)
