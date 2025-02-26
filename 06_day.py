@@ -49,15 +49,11 @@ class Map:
         self.visited_positions.append(Position(col, row))
         # print (self.grid[r])
 
-<<<<<<< Updated upstream
-    def calculateNextPosition(self, dir, pos):
-        r = pos[0]
-        c = pos[1]
-=======
-    def move(self, direction: Direction, position: Position) -> Position:
+    def calculateNextPosition(
+        self, direction: Direction, position: Position
+    ) -> Position:
         row = position.y
         col = position.x
->>>>>>> Stashed changes
 
         match (direction):
             case Direction.Right:
@@ -108,13 +104,12 @@ class Map:
                 if self.grid[row][col] == "#":
                     stones_positions.append(Position(col, row))
         return stones_positions
-    
-    def selectAllStoneTriples(self):
-        all_stones = self.selectStones()
-        for i in range(all_stones):
-            for j in range(all_stones[i:]):
-                for z in range(all_stones[j:]):
 
+    # def selectAllStoneTriples(self):
+    #     all_stones = self.selectStones()
+    #     for i in range(all_stones):
+    #         for j in range(all_stones[i:]):
+    #             for z in range(all_stones[j:]):
 
 
 def main():
@@ -134,31 +129,16 @@ def main():
     inside = True
     x = 0
     while inside:
-<<<<<<< Updated upstream
         # get the nert position
-        next_pos = map.calculateNextPosition(dir, pos)
-        # print (dir, next_pos)
-=======
-        # get the next position
-        next_position = map.move(curr_direction, curr_position)
+        next_position = map.calculateNextPosition(curr_direction, curr_position)
         # print (curr_direction, next_position)
->>>>>>> Stashed changes
 
         # check if there is no obstacle
         isObstacle = map.isObstable(next_position)
-        # print (obstacle)
 
-<<<<<<< Updated upstream
-        if obstacle:
-            # change direction
-            dir = map.changeDir(dir)
-            # get new position
-            next_pos = map.calculateNextPosition(dir, pos)
-=======
         if isObstacle:
             curr_direction = map.changeDirection(curr_direction)
-            next_position = map.move(curr_direction, curr_position)
->>>>>>> Stashed changes
+            next_position = map.calculateNextPosition(curr_direction, curr_position)
 
         # if no obstacle, move there
         map.markVisit(next_position)
@@ -172,7 +152,7 @@ def main():
     number = map.countVisited()
     print("# of visited tiles", number)
     map.printMap()
-    map.getVisitedPositions()
+    # map.getVisitedPositions()
     return 0
 
 
