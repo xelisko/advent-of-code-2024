@@ -1,4 +1,5 @@
 import time
+import numpy as np
 
 
 def main():
@@ -48,6 +49,7 @@ def generate_operators_combinations(curr_str: str, n: int) -> list[str]:
     combinations.append(generate_operators_combinations(curr_str + "*", n))
     combinations.append(generate_operators_combinations(curr_str + "+", n))
     combinations.append(generate_operators_combinations(curr_str + "|", n))
+    return combinations
 
 
 if __name__ == "__main__":
