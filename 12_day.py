@@ -23,8 +23,6 @@ class Garden:
         self.cols = len(map[0])
         self.visited_corners = []
         self.counted = [[0 for j in range(self.cols)] for i in range(self.rows)]
-        self.regionPlots = 0
-        pass
 
     def showMap(self):
         for row in self.map:
@@ -43,7 +41,6 @@ class Garden:
                 if self.counted[i][j] == 0:
                     print("started with", plant)
                     # start tracing the region - Task 1
-                    self.regionPlots = []
                     a, n = self.find_all_tiles_in_region(i, j, plant)
                     price += a * (4 * a - n)
                     self.showCounted()
@@ -57,44 +54,52 @@ class Garden:
         return price, price_two_starts
 
     # def for_tile_return_corners(self, x, y) -> list[Corner]:
-    #     corner = Corner(x,y)
+    #     corner = Corner(x, y)
     #     # for each corner, find out if the four cornering tiles are of different and at the same time same plant tzpe
-    #     self.is_an_edge
-    #     return [Corner(x, y), Corner(x, y + 1), Corner(x + 1, y), Corner(x + 1, y + 1)]
+    #     self.is_an_edge()
+    #     self.try_next_corner_to_X_direction(
+    #         corner, Direction(+1, 0), regions_plant_type
+    #     )
 
-    def find_all_tiles_in_region(
-        self, row, col, plant, all_visited_corners: list[Corner]
-    ):
+    #     nextCorner = Corner(currCorner.x + direction.x, currCorner.y + direction.y)
+    #     return self.is_an_edge(currCorner, nextCorner, plant_of_the_region)
+
+    def is_next_in_the_same_region(
+        self, row: int, col: int, direction: Direction, regions_plant_type: str
+    ) -> bool:
+        if not (
+            col + direction.x < self.cols and row + direction.y < self.rows
+        ) or not (col + direction.x >= 0 and row + direction.y >= 0):
+            return False
+        if self.map[row + direction.y][col + direction.x] == regions_plant_type:
+            if self.counted[row + direction.y][col + direction.x] == 0:
+                return True
+        return False
+
+    def find_all_tiles_in_region(self, row, col, plant):
+        # colour the visited tile
         self.counted[row][col] = 1
-        all_visited_corners.append(self.for_tile_return_corners())
-        self.regionPlots.append([row, col])
+        # find any corners of the tile that are on the outline
+        # all_visited_corners.append(self.for_tile_return_corners())
         area = 1
         nghbrs = 0
         # if: within bounds, match, uncounted
-        if col + 1 < self.cols and self.map[row][col + 1] == plant:
-            nghbrs += 1
-            if self.counted[row][col + 1] == 0:
-                a, n = self.find_all_tiles_in_region(row, col + 1, plant)
-                area += a
-                nghbrs += n
-        if col - 1 >= 0 and self.map[row][col - 1] == plant:
-            nghbrs += 1
-            if self.counted[row][col - 1] == 0:
-                a, n = self.find_all_tiles_in_region(row, col - 1, plant)
-                area += a
-                nghbrs += n
-        if row + 1 < self.rows and self.map[row + 1][col] == plant:
-            nghbrs += 1
-            if self.counted[row + 1][col] == 0:
-                a, n = self.find_all_tiles_in_region(row + 1, col, plant)
-                area += a
-                nghbrs += n
-        if row - 1 >= 0 and self.map[row - 1][col] == plant:
-            nghbrs += 1
-            if self.counted[row - 1][col] == 0:
-                a, n = self.find_all_tiles_in_region(row - 1, col, plant)
-                area += a
-                nghbrs += n
+        if self.is_next_in_the_same_region(row, col, Direction(+1, 0), plant):
+            a, n = self.find_all_tiles_in_region(row, col + 1, plant)
+            area += a
+            nghbrs += n
+        if self.is_next_in_the_same_region(row, col, Direction(-1, 0), plant):
+            a, n = self.find_all_tiles_in_region(row, col - 1, plant)
+            area += a
+            nghbrs += n
+        if self.is_next_in_the_same_region(row, col, Direction(0, +1), plant):
+            a, n = self.find_all_tiles_in_region(row + 1, col, plant)
+            area += a
+            nghbrs += n
+        if self.is_next_in_the_same_region(row, col, Direction(0, -1), plant):
+            a, n = self.find_all_tiles_in_region(row - 1, col, plant)
+            area += a
+            nghbrs += n
         return area, nghbrs
 
     def get_plant_type(self, x, y):
