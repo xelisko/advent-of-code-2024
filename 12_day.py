@@ -1,7 +1,9 @@
 import time
+import uuid
 
 from dataclasses import dataclass
 from enum import Enum
+import numpy as np
 
 
 @dataclass
@@ -21,7 +23,7 @@ class Garden:
         self.map = map
         self.rows = len(map)
         self.cols = len(map[0])
-        self.visited_corners = []
+        self.outline_corners = set()
         self.counted = [[0 for j in range(self.cols)] for i in range(self.rows)]
 
     def showMap(self):
@@ -39,30 +41,34 @@ class Garden:
             for j, plant in enumerate(row):
                 # checks if already processed
                 if self.counted[i][j] == 0:
-                    print("started with", plant)
+                    self.outline_corners = set()
                     # start tracing the region - Task 1
                     a, n = self.find_all_tiles_in_region(i, j, plant)
-                    price += a * (4 * a - n)
-                    self.showCounted()
+                    # price += a * (4 * a - a * n)
 
-                    # start tracing outline for that region
                     number_of_straight_lines = self.calculate_no_of_straight_line(i, j)
                     price_two_starts += a * number_of_straight_lines
-                    print("number of straight lines = ", number_of_straight_lines)
-                    print("new area = ", a * number_of_straight_lines)
-                    # return price
+                    # print("new area = ", a, number_of_straight_lines)
         return price, price_two_starts
 
-    # def for_tile_return_corners(self, x, y) -> list[Corner]:
-    #     corner = Corner(x, y)
-    #     # for each corner, find out if the four cornering tiles are of different and at the same time same plant tzpe
-    #     self.is_an_edge()
-    #     self.try_next_corner_to_X_direction(
-    #         corner, Direction(+1, 0), regions_plant_type
-    #     )
+    def for_tile_return_corners(self, x: int, y: int, plant_type: str) -> list[Corner]:
+        top_left = Corner(x, y)
+        top_right = Corner(x + 1, y)
+        bottom_left = Corner(x, y + 1)
+        bottom_right = Corner(x + 1, y + 1)
 
-    #     nextCorner = Corner(currCorner.x + direction.x, currCorner.y + direction.y)
-    #     return self.is_an_edge(currCorner, nextCorner, plant_of_the_region)
+        if self.is_an_edge(top_left, top_right, plant_type):
+            self.outline_corners.add(tuple((top_left.x, top_left.y)))
+            self.outline_corners.add(tuple((top_right.x, top_right.y)))
+        if self.is_an_edge(top_right, bottom_right, plant_type):
+            self.outline_corners.add(tuple((top_right.x, top_right.y)))
+            self.outline_corners.add(tuple((bottom_right.x, bottom_right.y)))
+        if self.is_an_edge(bottom_right, bottom_left, plant_type):
+            self.outline_corners.add(tuple((bottom_right.x, bottom_right.y)))
+            self.outline_corners.add(tuple((bottom_left.x, bottom_left.y)))
+        if self.is_an_edge(bottom_left, top_left, plant_type):
+            self.outline_corners.add(tuple((bottom_left.x, bottom_left.y)))
+            self.outline_corners.add(tuple((top_left.x, top_left.y)))
 
     def is_next_in_the_same_region(
         self, row: int, col: int, direction: Direction, regions_plant_type: str
@@ -77,39 +83,42 @@ class Garden:
         return False
 
     def find_all_tiles_in_region(self, row, col, plant):
-        # colour the visited tile
+        # colour the visited tile and get all its outline corners
+        self.for_tile_return_corners(col, row, plant)
         self.counted[row][col] = 1
-        # find any corners of the tile that are on the outline
-        # all_visited_corners.append(self.for_tile_return_corners())
         area = 1
         nghbrs = 0
         # if: within bounds, match, uncounted
         if self.is_next_in_the_same_region(row, col, Direction(+1, 0), plant):
+            nghbrs += 1
             a, n = self.find_all_tiles_in_region(row, col + 1, plant)
             area += a
             nghbrs += n
         if self.is_next_in_the_same_region(row, col, Direction(-1, 0), plant):
+            nghbrs += 1
             a, n = self.find_all_tiles_in_region(row, col - 1, plant)
             area += a
             nghbrs += n
         if self.is_next_in_the_same_region(row, col, Direction(0, +1), plant):
+            nghbrs += 1
             a, n = self.find_all_tiles_in_region(row + 1, col, plant)
             area += a
             nghbrs += n
         if self.is_next_in_the_same_region(row, col, Direction(0, -1), plant):
+            nghbrs += 1
             a, n = self.find_all_tiles_in_region(row - 1, col, plant)
             area += a
             nghbrs += n
         return area, nghbrs
 
-    def get_plant_type(self, x, y):
+    def get_plant_type(self, x: int, y: int):
         if x < 0 or y < 0:
             return None
         if x >= self.cols or y >= self.rows:
             return None
         return self.map[y][x]
 
-    def returns_if_belongs_to_region(self, x, y):
+    def returns_if_belongs_to_region(self, x: int, y: int) -> bool:
         if x < 0 or y < 0:
             return True
         if x >= self.cols or y >= self.rows:
@@ -119,91 +128,53 @@ class Garden:
     def is_an_edge(
         self, prevCorner: Corner, currCorner: Corner, plant_type: str
     ) -> bool:
-        # can't be the same, but must be neightbouring
-        assert (
-            abs(prevCorner.x - currCorner.x) <= 1
-            and abs(prevCorner.y - currCorner.y) <= 1
-        )
-        assert (prevCorner.x != currCorner.x) or (prevCorner.y != currCorner.y)
-        assert prevCorner.x == currCorner.x or prevCorner.y == currCorner.y
-
         if prevCorner.x == currCorner.x:
             if prevCorner.y > currCorner.y:  # up
                 type0 = self.get_plant_type(prevCorner.x, prevCorner.y - 1)
                 type1 = self.get_plant_type(prevCorner.x - 1, prevCorner.y - 1)
-                counted0 = self.returns_if_belongs_to_region(
-                    prevCorner.x, prevCorner.y - 1
-                )
-                counted1 = self.returns_if_belongs_to_region(
-                    prevCorner.x - 1, prevCorner.y - 1
-                )
                 return (type0 != type1) and (
-                    (type0 == plant_type)
-                    or (type1 == plant_type)
-                    and (counted0 and counted1)
+                    (type0 == plant_type) or (type1 == plant_type)
                 )
             else:  # down
-                # convert the edge between corners into tiles that have that edge
                 type0 = self.get_plant_type(prevCorner.x, prevCorner.y)
                 type1 = self.get_plant_type(prevCorner.x - 1, prevCorner.y)
-                counted0 = self.returns_if_belongs_to_region(prevCorner.x, prevCorner.y)
-                counted1 = self.returns_if_belongs_to_region(
-                    prevCorner.x - 1, prevCorner.y
-                )
                 return type0 != type1 and (
-                    (type0 == plant_type)
-                    or (type1 == plant_type)
-                    and (counted0 and counted1)
+                    (type0 == plant_type) or (type1 == plant_type)
                 )
         else:
-            if prevCorner.x > currCorner.x:  # left1
+            if prevCorner.x > currCorner.x:  # left
                 type0 = self.get_plant_type(prevCorner.x - 1, prevCorner.y)
                 type1 = self.get_plant_type(prevCorner.x - 1, prevCorner.y - 1)
-                counted0 = self.returns_if_belongs_to_region(
-                    prevCorner.x - 1, prevCorner.y
-                )
-                counted1 = self.returns_if_belongs_to_region(
-                    prevCorner.x - 1, prevCorner.y - 1
-                )
                 return type0 != type1 and (
-                    (type0 == plant_type)
-                    or (type1 == plant_type)
-                    and (counted0 and counted1)
+                    (type0 == plant_type) or (type1 == plant_type)
                 )
             else:  # right
                 type0 = self.get_plant_type(prevCorner.x, prevCorner.y)
                 type1 = self.get_plant_type(prevCorner.x, prevCorner.y - 1)
-                counted0 = self.returns_if_belongs_to_region(prevCorner.x, prevCorner.y)
-                counted1 = self.returns_if_belongs_to_region(
-                    prevCorner.x, prevCorner.y - 1
-                )
                 return type0 != type1 and (
-                    (type0 == plant_type)
-                    or (type1 == plant_type)
-                    and (counted0 and counted1)
+                    (type0 == plant_type) or (type1 == plant_type)
                 )
-
-    def check_for_embedded_regions(
-        self, all_corners: list[Corner], plant_type: str
-    ) -> bool:
-        # for corner in all_corners:
-        #     if self.map[corner.y][corner.x] != plant_type:
-        #         return self.map[corner.y][corner.x]
-        return "nic"
 
     def calculate_no_of_straight_line(self, row: int, col: int) -> int:
         plant_of_the_region = self.get_plant_type(col, row)
-        all_visited_corners, all_directions = self.tracing_outline_of_region(
-            Corner(col, row), [Corner(col, row)], plant_of_the_region, []
-        )
+        no_of_straight_lines = 0
+        # gather all the outline corners and directions
+        while len(self.outline_corners) != 0:
+            corners, directions = self.tracing_outline_of_region(
+                Corner(col, row), [Corner(col, row)], plant_of_the_region, []
+            )
+            direction_first_last_corner = Direction(
+                corners[0].x - corners[-1].x,
+                corners[0].y - corners[-1].y,
+            )
+            directions.append(direction_first_last_corner)
+            if len(self.outline_corners):
+                col, row = self.outline_corners.pop()
 
-        direction_first_last_corner = Direction(
-            all_visited_corners[0].x - all_visited_corners[-1].x,
-            all_visited_corners[0].y - all_visited_corners[-1].y,
-        )
-        all_directions.append(direction_first_last_corner)
-        no_of_straight_lines = self.numberOfDirectionChanges(all_directions)
-        print(self.check_for_embedded_regions(all_visited_corners, plant_of_the_region))
+            # calculate the number of stright lines
+            n = self.numberOfDirectionChanges(directions)
+            no_of_straight_lines += n
+        # print("straight lines", no_of_straight_lines)
         return no_of_straight_lines
 
     def numberOfDirectionChanges(self, all_directions: list[Direction]) -> int:
@@ -228,6 +199,7 @@ class Garden:
         return (
             self.sameCorner(currCorner, nextCorner) == False
             and self.is_an_edge(currCorner, nextCorner, plant_of_the_region)
+            and tuple((nextCorner.x, nextCorner.y)) in self.outline_corners
             and nextCorner not in all_corners
         )
 
@@ -238,7 +210,8 @@ class Garden:
         plant_of_the_region: str,
         all_directions: list[Direction],
     ):
-        print(currCorner, plant_of_the_region)
+        # print(currCorner, plant_of_the_region)
+        self.outline_corners.discard(tuple((currCorner.x, currCorner.y)))
         # try right
         if self.try_next_corner_to_X_direction(
             currCorner, Direction(x=+1, y=0), plant_of_the_region, all_corners
@@ -285,14 +258,14 @@ class Garden:
 def main():
 
     space = []
-    with open("12_input.txt") as f:
+    with open("12_puzzle.txt") as f:
         for line in f:
             space.append(line.strip())
 
     garden = Garden(space)
-    garden.showMap()
+    # garden.showMap()
     price1, price2 = garden.get_plant_type_price_for_fence()
-    print("price start one = ", price1)
+    # print("price start one = ", price1)
     print("price start two = ", price2)
 
 
